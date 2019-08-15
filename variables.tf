@@ -1,3 +1,7 @@
+variable "enabled" {
+  default = true
+}
+
 # Autospotting configuration
 variable "autospotting_allowed_instance_types" {
   description = <<EOF
