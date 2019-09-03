@@ -4,7 +4,7 @@ module "label" {
 }
 
 resource "aws_lambda_function" "autospotting" {
-  count = var.lambda_s3_bucket == "" ? 1 : 0
+  count = var.lambda_s3_bucket == "" && var.enabled ? 1 : 0
 
   function_name    = module.label.id
   filename         = var.lambda_zipname
@@ -35,7 +35,7 @@ resource "aws_lambda_function" "autospotting" {
 }
 
 resource "aws_lambda_function" "autospotting_from_s3" {
-  count = var.lambda_s3_bucket == "" ? 0 : 1
+  count = var.lambda_s3_bucket == "" || !var.enabled ? 0 : 1
 
   function_name = module.label.id
   s3_bucket     = var.lambda_s3_bucket

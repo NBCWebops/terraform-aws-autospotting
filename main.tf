@@ -11,14 +11,15 @@ module "label" {
 }
 
 module "aws_lambda_function" {
-  source = "./modules/lambda"
+  source  = "./modules/lambda"
+  enabled = var.enabled
 
   label_context = module.label.context
 
   lambda_zipname     = var.lambda_zipname
   lambda_s3_bucket   = var.lambda_s3_bucket
   lambda_s3_key      = var.lambda_s3_key
-  lambda_role_arn    = aws_iam_role.autospotting_role.arn
+  lambda_role_arn    = aws_iam_role.autospotting_role[0].arn
   lambda_runtime     = var.lambda_runtime
   lambda_timeout     = var.lambda_timeout
   lambda_memory_size = var.lambda_memory_size
@@ -39,6 +40,7 @@ module "aws_lambda_function" {
 }
 
 resource "aws_iam_role" "autospotting_role" {
+  count                 = var.enabled ? 1 : 0
   name                  = module.label.id
   path                  = "/lambda/"
   assume_role_policy    = file("${path.module}/lambda-policy.json")
@@ -46,31 +48,36 @@ resource "aws_iam_role" "autospotting_role" {
 }
 
 resource "aws_iam_role_policy" "autospotting_policy" {
+  count  = var.enabled ? 1 : 0
   name   = "policy_for_${module.label.id}"
-  role   = aws_iam_role.autospotting_role.id
+  role   = aws_iam_role.autospotting_role[0].id
   policy = file("${path.module}/autospotting-policy.json")
 }
 
 resource "aws_lambda_permission" "cloudwatch_events_permission" {
+  count         = var.enabled ? 1 : 0
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
-  function_name = module.aws_lambda_function.function_name
+  function_name =  module.aws_lambda_function.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency.arn
+  source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency[0].arn
 }
 
 resource "aws_cloudwatch_event_target" "cloudwatch_target" {
-  rule      = aws_cloudwatch_event_rule.cloudwatch_frequency.name
+  count     = var.enabled ? 1 : 0
+  rule      = aws_cloudwatch_event_rule.cloudwatch_frequency[0].name
   target_id = "run_autospotting"
   arn       = module.aws_lambda_function.arn
 }
 
 resource "aws_cloudwatch_event_rule" "cloudwatch_frequency" {
+  count               = var.enabled ? 1 : 0
   name                = "${module.label.id}_frequency"
   schedule_expression = var.lambda_run_frequency
 }
 
 resource "aws_cloudwatch_log_group" "log_group_autospotting" {
+  count             = var.enabled ? 1 : 0
   name              = "/aws/lambda/${module.label.id}"
   retention_in_days = 7
 }
