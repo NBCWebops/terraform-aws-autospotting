@@ -19,7 +19,7 @@ module "aws_lambda_function" {
   lambda_zipname     = var.lambda_zipname
   lambda_s3_bucket   = var.lambda_s3_bucket
   lambda_s3_key      = var.lambda_s3_key
-  lambda_role_arn    = aws_iam_role.autospotting_role.*.arn
+  lambda_role_arn    = var.enabled ? aws_iam_role.autospotting_role[0].arn : null
   lambda_runtime     = var.lambda_runtime
   lambda_timeout     = var.lambda_timeout
   lambda_memory_size = var.lambda_memory_size
