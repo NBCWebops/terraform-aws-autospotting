@@ -60,12 +60,12 @@ resource "aws_lambda_permission" "cloudwatch_events_permission" {
   action        = "lambda:InvokeFunction"
   function_name =  module.aws_lambda_function.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.cloudwatch_frequency[0].arn
+  source_arn    = join("", aws_cloudwatch_event_rule.cloudwatch_frequency.*.arn)
 }
 
 resource "aws_cloudwatch_event_target" "cloudwatch_target" {
   count     = var.enabled ? 1 : 0
-  rule      = aws_cloudwatch_event_rule.cloudwatch_frequency[0].name
+  rule      = join("", aws_cloudwatch_event_rule.cloudwatch_frequency.*.name)
   target_id = "run_autospotting"
   arn       = module.aws_lambda_function.arn
 }
